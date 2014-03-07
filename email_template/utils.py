@@ -1,11 +1,17 @@
 # -*- coding: UTF-8 -*-
-from django.conf import settings
+from django.utils.translation import get_language
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from email_template import models
 
 def email(code, ctx, mark_safestring=True, **kw):
-    e = get_object_or_404(models.Email, code = code)
+    suffix = get_language()
+    try:
+        i18n_code = "%s-%s" % (code, suffix)
+        e = models.Email.objects.get(code=i18n_code)
+    except models.Email.DoesNotExist:
+        e = get_object_or_404(models.Email, code=code)
+
     subject, body = e.render(ctx, mark_safestring=mark_safestring)
     email = EmailMessage()
     email.subject = subject
